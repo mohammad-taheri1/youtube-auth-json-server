@@ -1,6 +1,7 @@
 const fs = require("fs");
 const jsonServer = require("json-server");
 const { v4: uuidv4 } = require("uuid");
+const JWT = require("jsonwebtoken");
 
 const server = jsonServer.create();
 const router = jsonServer.router("./db.json");
@@ -24,6 +25,32 @@ const isValidUserDate = (email, password) => {
    const users = JSON.parse(fs.readFileSync(usersFilePath));
    const userIndex = users.findIndex((user) => user.email === email && user.password === password);
    return userIndex !== -1;
+};
+
+// JWT
+// jwt.sign({
+//     exp: Math.floor(Date.now() / 1000) + (60 * 60),
+//     data: 'foobar'
+//   }, 'secret');
+
+const exp = Math.floor(Date.now() / 1000) + 60 * 60; // -> 1 hours
+const SECRET_KEY = "dksfsdufygsdufyg@'3i4";
+
+const createToken = (email) => {
+   const payload = {
+      exp,
+      email,
+   };
+   return JWT.sign(payload, SECRET_KEY);
+};
+
+const verifyToken = (token) => {
+   return JWT.verify(token, SECRET_KEY, (error, decoded) => {
+      if (decoded !== undefined) {
+         return decoded;
+      }
+      throw new Error();
+   });
 };
 
 // API Route :: Users List -> GET
@@ -95,7 +122,35 @@ server.post("/auth/login", (req, res) => {
       return res.status(401).send("Incorrect Credentials");
    }
    // email and password is correct and we need to create a token and send it back to user
+   const accessToken = createToken(email);
+
+   return res.status(200).send(accessToken);
 });
+
+// WE need to check the token validation for routes that starts with "/auth/*"
+// So, we need a middleware to do this
+// Authorizat = "Bearer lkuyjhgtrefwoihwdgyuwwdi"
+server.use(/\/auth\/.*/, (req, res, next) => {
+   // Validate if the request has the authorization header
+   const { headers } = req;
+   if (headers.authorization === undefined || headers.authorization.split(" ")[0] !== "Bearer") {
+      return res.status(403).send("Unauthorized request");
+   }
+   try {
+      const verifyResult = verifyToken(headers.authorization.split(" ")[1]);
+      console.log({ verifyResult });
+      next();
+   } catch (error) {
+      return res.status(403).send(error);
+   }
+});
+
+// rewrite default router in json-server
+server.use(
+   jsonServer.rewriter({
+      "/auth/*": "/$1",
+   })
+);
 
 //
 server.use(router);

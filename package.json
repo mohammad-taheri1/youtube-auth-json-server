@@ -8,5 +8,10 @@
    },
    "keywords": [],
    "author": "MamadTaheri68",
-   "license": "ISC"
+   "license": "ISC",
+   "dependencies": {
+      "json-server": "^0.17.1",
+      "jsonwebtoken": "^9.0.0",
+      "uuid": "^9.0.0"
+   }
 }

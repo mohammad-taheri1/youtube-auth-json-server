@@ -12,3 +12,4 @@ https://www.youtube.com/watch?v=dThQsrcelWg
 ### Run image:
 
       docker run -d -p 8200:8200 auth-json-server:1.0.0
+

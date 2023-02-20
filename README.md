@@ -1,5 +1,8 @@
 # Auth Json Server
 
+## Youtube Tutorial video
+https://www.youtube.com/watch?v=dThQsrcelWg
+
 ### Docker commands:
 
 ### Build image:
